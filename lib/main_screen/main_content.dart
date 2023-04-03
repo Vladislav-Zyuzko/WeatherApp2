@@ -59,10 +59,14 @@ class _MainContentState extends State<MainContent> {
                       '${widget.weatherLog['Температура']}°',
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 60.0,
+                        fontSize: 70.0,
                         fontWeight: FontWeight.bold,
                       ),
-                    )
+                    ),
+                    Image.asset(
+                      widget.iconsMap[widget.weatherLog['Иконка']] ?? 'assets/weather_icons/storm.png',
+                      scale: 1.3,
+                    ),
                   ],
                 )
               ],
