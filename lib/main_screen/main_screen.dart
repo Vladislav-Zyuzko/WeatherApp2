@@ -23,9 +23,6 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   late Animation<double> _animation;
   bool dir = true;
 
-  String cityImageUrl =
-      "https://kartinkin.net/uploads/posts/2022-03/1648054913_54-kartinkin-net-p-kartinki-voprosa-58.jpg";
-
   Map<String, String> iconsMap = <String, String>{
     '01d': 'assets/weather_icons/clear_sun.png',
     '01n': 'assets/weather_icons/clear_moon.png',
@@ -78,7 +75,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
             forecastLog: forecastLog,
             iconsMap: iconsMap,
             iconUrl: iconUrl,
-            cityImageUrl: cityImageUrl);
+            cityImageUrl: widget.imagesSearch.getCityImageURL());
       } else {
         return const LoadContent();
       }
@@ -119,6 +116,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
           onSubmitted: (String str) {
             widget.weather.setCityName(str);
             widget.userBox.put('city', str);
+            setNewCityImageURL();
             loadData();
             setState(() {
               changeStateAnimationButton();
@@ -128,11 +126,13 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     }
   }
 
-  void getQueryBody() async {
-    String newCityImageUrl = await widget.imagesSearch.getImage(widget.weather.getCityName());
+  void setNewCityImageURL() async {
+    String newCityImageURL = await widget.imagesSearch.getImage(widget.weather.getCityName());
     setState(() {
-      cityImageUrl = newCityImageUrl;
+      widget.userBox.put('cityImageURL', newCityImageURL);
+      widget.imagesSearch.setCityImageURL(newCityImageURL);
     });
+
   }
 
   void changeStateAnimationButton() {
@@ -147,7 +147,6 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   void loadData() {
     getWeatherData();
     getForecastData();
-    getQueryBody();
   }
 
   @override
@@ -158,7 +157,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     _animation = Tween<double>(begin: dir ? 0 : -0.25, end: dir ? -0.25 : 0)
         .animate(_controller);
     if (widget.userBox.isNotEmpty) {widget.weather.setCityName(widget.userBox.get('city'));}
-    widget.weather.setCityName('Omsk');
+    if (widget.userBox.isNotEmpty) {widget.imagesSearch.setCityImageURL(widget.userBox.get('cityImageURL'));}
     loadData();
   }
 

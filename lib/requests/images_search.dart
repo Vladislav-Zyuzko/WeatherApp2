@@ -1,11 +1,11 @@
 import 'package:dio/dio.dart';
-import 'dart:math';
 
 class ImagesSearch {
   //AIzaSyDldVVUF55rieRk1REpqlDunnIxbYD7-eI 13f2e18ab420f4997 - vlados
   //AIzaSyAH_93iDyGdaNy3MCyV1iOlrIpSc3ng7Ks 8475b061c8325422b
-  final _appid = "AIzaSyAH_93iDyGdaNy3MCyV1iOlrIpSc3ng7Ks" ;
-  final _cx = "8475b061c8325422b";
+  final _appid = "AIzaSyDldVVUF55rieRk1REpqlDunnIxbYD7-eI" ;
+  final _cx = "13f2e18ab420f4997";
+  String _cityImageURL = "https://static.tildacdn.com/tild3732-3662-4936-b839-323833633632/0_8d787_5c38e2ad_ori.jpg";
 
   BaseOptions options = BaseOptions(
     receiveDataWhenStatusError: true,
@@ -13,8 +13,15 @@ class ImagesSearch {
     receiveTimeout: const Duration(seconds: 30),
   );
 
+  void setCityImageURL(newCityImageUrl) {
+    _cityImageURL = newCityImageUrl ?? _cityImageURL;
+  }
+
+  String getCityImageURL() {
+    return _cityImageURL;
+  }
+
   Future<String> getImage(String str) async {
-    print(str);
     Dio dio = Dio(options);
     try {
       Response response = await dio.request(
@@ -22,13 +29,12 @@ class ImagesSearch {
         options: Options(method: 'GET'),
         queryParameters: <String, String>{
           'searchType': 'image',
-          'q': str,
+          'q': "$str красивое  фото",
           'key': _appid,
-          'cx': _cx
+          'cx': _cx,
+          'safe': 'active',
         },
       );
-      Random random = Random();
-      print(response.data['items'][0]['link']);
       return response.data['items'][0]['link'];
     } on DioError  { return "https://ringtons.ru/wp-content/uploads/2021/04/oshibka.png";}
   }
