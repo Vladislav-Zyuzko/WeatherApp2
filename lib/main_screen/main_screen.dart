@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:weather_app2/requests/images_search.dart';
 import 'package:weather_app2/requests/weather.dart';
@@ -6,7 +8,8 @@ import 'package:weather_app2/main_screen/load_content.dart';
 import 'package:weather_app2/main_screen/invalid_content.dart';
 
 class Home extends StatefulWidget {
-  const Home({Key? key, required this.imagesSearch, required this.weather}) : super(key: key);
+  const Home({Key? key, required this.imagesSearch, required this.weather})
+      : super(key: key);
 
   final ImagesSearch imagesSearch;
   final Weather weather;
@@ -15,10 +18,14 @@ class Home extends StatefulWidget {
   State<Home> createState() => _HomeState();
 }
 
-class _HomeState extends State<Home> {
+class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+  bool dir = true;
 
   String bodyQuery = "";
-  String query = "https://kartinkin.net/uploads/posts/2022-03/1648054913_54-kartinkin-net-p-kartinki-voprosa-58.jpg";
+  String query =
+      "https://kartinkin.net/uploads/posts/2022-03/1648054913_54-kartinkin-net-p-kartinki-voprosa-58.jpg";
 
   Map<String, String> iconsMap = <String, String>{
     '01d': 'assets/weather_icons/clear_sun.png',
@@ -66,23 +73,84 @@ class _HomeState extends State<Home> {
   dynamic returnContent() {
     if (widget.weather.getStatus()) {
       if (weatherLog.isNotEmpty) {
-        return MainContent(weather: widget.weather, weatherLog: weatherLog,
-            forecastLog: forecastLog, iconsMap: iconsMap, iconUrl: iconUrl, query: query);
-      } else { return const LoadContent(); }
-    } else {return const InvalidContent();}
+        return MainContent(
+            weather: widget.weather,
+            weatherLog: weatherLog,
+            forecastLog: forecastLog,
+            iconsMap: iconsMap,
+            iconUrl: iconUrl,
+            query: query);
+      } else {
+        return const LoadContent();
+      }
+    } else {
+      return const InvalidContent();
+    }
   }
 
-  void getQueryBody () async {
+  Widget returnAppBar() {
+    if (dir) {
+      return TextButton(
+        onPressed: () {
+        changeStateAnimationButton();
+      },
+        child: Text(
+          bodyQuery,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+          ),
+        ),
+      );
+    } else {
+      return TextField(
+          controller: TextEditingController(
+            text: bodyQuery,
+          ),
+          style: const TextStyle(color: Colors.white),
+          decoration: const InputDecoration(
+            hoverColor: Colors.white,
+            enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(
+                color: Colors.white,
+                width: 1.0,
+              ),
+            ),
+          ),
+          onSubmitted: (String str) {
+            setState(() {
+              changeStateAnimationButton();
+              bodyQuery = str;
+            });
+          }
+      );
+    }
+  }
+
+  void getQueryBody() async {
     String Query2 = await widget.imagesSearch.getImage(bodyQuery);
     setState(() {
       query = Query2;
     });
   }
 
+  void changeStateAnimationButton() {
+    _controller.forward(from: 0);
+    setState(() {
+      _animation = Tween<double>(begin: dir ? 0 : -0.25, end: dir ? -0.25 : 0)
+          .animate(_controller);
+      dir = !dir;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
-    bodyQuery = 'Omsk';
+    _controller = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 400));
+    _animation = Tween<double>(begin: dir ? 0 : -0.25, end: dir ? -0.25 : 0)
+        .animate(_controller);
+    bodyQuery = "Утренний омск";
     widget.weather.setCityName('Omsk');
     getWeatherData();
     getForecastData();
@@ -90,17 +158,31 @@ class _HomeState extends State<Home> {
   }
 
   @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          "Omsk",
-          style: TextStyle(
-            color: Colors.white,
+        title: returnAppBar(),
+        backgroundColor: Colors.black87,
+        leading: RotationTransition(
+          turns: _animation,
+          child: IconButton(
+            icon: const Icon(
+              Icons.arrow_drop_down_sharp,
+              color: Colors.white,
+              size: 40.0,
+            ),
+            onPressed: () {
+              changeStateAnimationButton();
+            },
           ),
         ),
-        backgroundColor: Colors.black87,
-        leading: IconButton(
+        /*leading: IconButton(
             onPressed: () {
               showDialog(
                   context: context,
@@ -115,27 +197,61 @@ class _HomeState extends State<Home> {
                         },
                       ),
                       actions: [
-                        ElevatedButton(onPressed: () {
-                          Navigator.of(context).pop();},
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
                           child: Text("Принять"),
                         )
                       ],
                     );
                   }
-              );
+                );
             },
             icon: const Icon(
-              Icons.add_circle,
+              Icons.arrow_drop_down_sharp,
               color: Colors.white,
               size: 40.0,
-            )
-        ),
+            ),
+        ),*/
       ),
       body: returnContent(),
+      bottomNavigationBar: Container(
+        decoration: const BoxDecoration(
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(30.0),
+              topRight: Radius.circular(30.0),
+            )),
+        child: ClipRRect(
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(30.0),
+            topRight: Radius.circular(30.0),
+          ),
+          child: BottomNavigationBar(
+            items: const <BottomNavigationBarItem>[
+              BottomNavigationBarItem(
+                icon: Icon(
+                  Icons.today,
+                  color: Colors.white,
+                ),
+                label: 'Сегодня',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(
+                  Icons.today,
+                  color: Colors.white,
+                ),
+                label: 'Сегодня',
+              ),
+            ],
+            backgroundColor: Colors.black87,
+          ),
+        ),
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           setState(() {
-            getQueryBody ();
+            getQueryBody();
           });
         },
         tooltip: 'Increment',

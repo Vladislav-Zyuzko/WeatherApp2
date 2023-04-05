@@ -51,22 +51,38 @@ class _MainContentState extends State<MainContent> {
                       )
                   ),
                 ),
-                const Padding(padding: EdgeInsets.only(top: 20.0)),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    Text(
-                      '${widget.weatherLog['Температура']}°',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 70.0,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    Column(
+                      children: [
+                        const Padding(padding: EdgeInsets.only(top: 20.0)),
+                        Text(
+                          '${widget.weatherLog['Температура']}°',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 70.0,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          widget.weatherLog['Описание'][0].toUpperCase() + widget.weatherLog['Описание'].substring(1),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 30.0,
+                          ),
+                        ),
+                      ],
                     ),
-                    Image.asset(
-                      widget.iconsMap[widget.weatherLog['Иконка']] ?? 'assets/weather_icons/storm.png',
-                      scale: 1.3,
-                    ),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          widget.iconsMap[widget.weatherLog['Иконка']] ?? 'assets/weather_icons/storm.png',
+                          scale: 1.3,
+                        ),
+                      ],
+                    )
                   ],
                 )
               ],
