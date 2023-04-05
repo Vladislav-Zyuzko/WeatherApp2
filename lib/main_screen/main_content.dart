@@ -9,7 +9,7 @@ class MainContent extends StatefulWidget {
         required this.iconsMap,
         required this.forecastLog,
         required this.iconUrl,
-        required this.query,
+        required this.cityImageUrl,
       });
 
   final Weather weather;
@@ -17,7 +17,7 @@ class MainContent extends StatefulWidget {
   final String iconUrl;
   final Map<String, dynamic> weatherLog;
   final List<dynamic> forecastLog;
-  final String query;
+  final String cityImageUrl;
 
   @override
   State<MainContent> createState() => _MainContentState();
@@ -47,7 +47,7 @@ class _MainContentState extends State<MainContent> {
                       borderRadius: BorderRadius.circular(20.0),
                       image: DecorationImage(
                         fit: BoxFit.fill,
-                        image: NetworkImage(widget.query),
+                        image: NetworkImage(widget.cityImageUrl),
                       )
                   ),
                 ),

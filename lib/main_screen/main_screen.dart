@@ -1,18 +1,18 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:weather_app2/requests/images_search.dart';
 import 'package:weather_app2/requests/weather.dart';
 import 'package:weather_app2/main_screen/main_content.dart';
 import 'package:weather_app2/main_screen/load_content.dart';
 import 'package:weather_app2/main_screen/invalid_content.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 class Home extends StatefulWidget {
-  const Home({Key? key, required this.imagesSearch, required this.weather})
+  const Home({Key? key, required this.imagesSearch, required this.weather, required this.userBox})
       : super(key: key);
 
   final ImagesSearch imagesSearch;
   final Weather weather;
+  final Box userBox;
 
   @override
   State<Home> createState() => _HomeState();
@@ -23,8 +23,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   late Animation<double> _animation;
   bool dir = true;
 
-  String bodyQuery = "";
-  String query =
+  String cityImageUrl =
       "https://kartinkin.net/uploads/posts/2022-03/1648054913_54-kartinkin-net-p-kartinki-voprosa-58.jpg";
 
   Map<String, String> iconsMap = <String, String>{
@@ -79,7 +78,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
             forecastLog: forecastLog,
             iconsMap: iconsMap,
             iconUrl: iconUrl,
-            query: query);
+            cityImageUrl: cityImageUrl);
       } else {
         return const LoadContent();
       }
@@ -95,7 +94,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         changeStateAnimationButton();
       },
         child: Text(
-          bodyQuery,
+          widget.weather.getCityName(),
           style: const TextStyle(
             color: Colors.white,
             fontSize: 20,
@@ -105,7 +104,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     } else {
       return TextField(
           controller: TextEditingController(
-            text: bodyQuery,
+            text: widget.weather.getCityName(),
           ),
           style: const TextStyle(color: Colors.white),
           decoration: const InputDecoration(
@@ -118,9 +117,11 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
             ),
           ),
           onSubmitted: (String str) {
+            widget.weather.setCityName(str);
+            widget.userBox.put('city', str);
+            loadData();
             setState(() {
               changeStateAnimationButton();
-              bodyQuery = str;
             });
           }
       );
@@ -128,9 +129,9 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   }
 
   void getQueryBody() async {
-    String Query2 = await widget.imagesSearch.getImage(bodyQuery);
+    String newCityImageUrl = await widget.imagesSearch.getImage(widget.weather.getCityName());
     setState(() {
-      query = Query2;
+      cityImageUrl = newCityImageUrl;
     });
   }
 
@@ -143,6 +144,12 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     });
   }
 
+  void loadData() {
+    getWeatherData();
+    getForecastData();
+    getQueryBody();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -150,11 +157,9 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         vsync: this, duration: const Duration(milliseconds: 400));
     _animation = Tween<double>(begin: dir ? 0 : -0.25, end: dir ? -0.25 : 0)
         .animate(_controller);
-    bodyQuery = "Утренний омск";
+    if (widget.userBox.isNotEmpty) {widget.weather.setCityName(widget.userBox.get('city'));}
     widget.weather.setCityName('Omsk');
-    getWeatherData();
-    getForecastData();
-    getQueryBody();
+    loadData();
   }
 
   @override
@@ -247,15 +252,6 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
             backgroundColor: Colors.black87,
           ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          setState(() {
-            getQueryBody();
-          });
-        },
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
