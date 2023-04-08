@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:weather_app2/requests/images_search.dart';
 import 'package:weather_app2/requests/weather.dart';
-import 'package:weather_app2/main_screen/main_content.dart';
-import 'package:weather_app2/main_screen/load_content.dart';
-import 'package:weather_app2/main_screen/invalid_content.dart';
+import 'package:weather_app2/pages/main_screen/main_content.dart';
+import 'package:weather_app2/pages/load_content.dart';
+import 'package:weather_app2/pages/invalid_content.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 class Home extends StatefulWidget {
@@ -170,6 +170,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: returnAppBar(),
         backgroundColor: Colors.black87,
@@ -186,72 +187,42 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
             },
           ),
         ),
-        /*leading: IconButton(
-            onPressed: () {
-              showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: const Text("Введите тело запроса"),
-                      content: TextField(
-                        onChanged: (String str) {
-                          setState(() {
-                            bodyQuery = str;
-                          });
-                        },
-                      ),
-                      actions: [
-                        ElevatedButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          child: Text("Принять"),
-                        )
-                      ],
-                    );
-                  }
-                );
-            },
-            icon: const Icon(
-              Icons.arrow_drop_down_sharp,
-              color: Colors.white,
-              size: 40.0,
-            ),
-        ),*/
       ),
       body: returnContent(),
-      bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(30.0),
-              topRight: Radius.circular(30.0),
-            )),
-        child: ClipRRect(
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(30.0),
-            topRight: Radius.circular(30.0),
-          ),
-          child: BottomNavigationBar(
-            items: const <BottomNavigationBarItem>[
-              BottomNavigationBarItem(
-                icon: Icon(
-                  Icons.today,
-                  color: Colors.white,
-                ),
-                label: 'Сегодня',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(
-                  Icons.today,
-                  color: Colors.white,
-                ),
-                label: 'Сегодня',
-              ),
-            ],
-            backgroundColor: Colors.black87,
-          ),
+      bottomNavigationBar: ClipRRect(
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(30.0),
+          topRight: Radius.circular(30.0),
         ),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+        child: BottomNavigationBar(
+          selectedItemColor: Colors.white,
+          selectedFontSize: 15.0,
+          unselectedItemColor: Colors.grey,
+          unselectedFontSize: 15.0,
+          items: const <BottomNavigationBarItem>[
+            BottomNavigationBarItem(
+              icon: Icon(
+                Icons.access_time_sharp,
+              ),
+              label: 'Сегодня',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(
+                Icons.today,
+              ),
+              label: 'Завтра',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(
+                Icons.date_range,
+              ),
+              label: 'На 5 дней',
+            )
+
+          ],
+          backgroundColor: Colors.black87,
+        ),
+      ),
     );
   }
 }
