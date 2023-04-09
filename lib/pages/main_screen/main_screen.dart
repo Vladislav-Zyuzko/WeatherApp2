@@ -48,6 +48,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   String iconUrl = 'assets/weather_icons/no_connect_white.png';
   Map<String, dynamic> weatherLog = <String, dynamic>{};
   List<dynamic> forecastLog = [];
+  List<dynamic> hourlyForecastLog = [];
 
   int _selectedPageIndex = 0;
 
@@ -69,10 +70,15 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   void getForecastData() async {
     forecastLog = [];
     forecastLog = await widget.weather.getLongForecast();
-    setState(() {
-      iconUrl = iconsMap[weatherLog['Иконка']] ??
-          'assets/weather_icons/no_connect_white.png';
-    });
+  }
+
+  void getCoordinates() async {
+    widget.weather.getCoordinates(widget.userBox.get('city'));
+  }
+
+  void getHourlyForecastData() async {
+    hourlyForecastLog = [];
+    hourlyForecastLog = await widget.weather.getHourlyForecast();
   }
 
   dynamic returnContent() {
@@ -163,8 +169,10 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   }
 
   void loadData() {
+    getCoordinates();
     getWeatherData();
     getForecastData();
+    getHourlyForecastData();
   }
 
   @override

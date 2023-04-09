@@ -1,8 +1,10 @@
 import 'package:dio/dio.dart';
 
 class Weather {
-  int _cityId = 0;
   int _timezone = 0;
+
+  double _lat = 55;
+  double _lon = 73.4;
 
   String _cityName = "Омск";
 
@@ -70,7 +72,6 @@ class Weather {
 
   Map<String, String> _queryParameters(Map<String, String> newParameter) {
     final parameters = <String, String>{
-      'id': _cityId.toString(),
       'units': _units,
       'lang': 'ru',
       'APPID': _appid,
@@ -91,26 +92,6 @@ class Weather {
     _cityName = cityName;
   }
 
-  Future<int> findCity(String city) async {
-    Dio dio = Dio(options);
-    try {
-      Response response = await dio.request(
-        'http://api.openweathermap.org/data/2.5/find',
-        options: Options(method: 'GET'),
-        queryParameters: <String, String>{
-          'q': city,
-          'units': _units,
-          'APPID': _appid,
-        },
-      );
-      _cityId =
-          response.data['count'] == 0 ? 0 : response.data['list'][0]['id'];
-      return _cityId;
-    } on DioError {
-      return -1;
-    }
-  }
-
   Future<Map<String, dynamic>> getNowWeather() async {
     final weatherMap = <String, dynamic>{};
     Dio dio = Dio(options);
@@ -119,9 +100,7 @@ class Weather {
       Response response = await dio.request(
         'http://api.openweathermap.org/data/2.5/weather',
         options: Options(method: 'GET'),
-        queryParameters: _cityId > 0
-            ? _queryParameters(<String, String>{"id": _cityId.toString()})
-            : _queryParameters(<String, String>{"q": _cityName}),
+        queryParameters: _queryParameters(<String, String>{"q": _cityName}),
       );
       weatherMap['Описание'] =
           response.data['weather'][0]['description'][0].toUpperCase() +
@@ -142,6 +121,68 @@ class Weather {
     }
   }
 
+  void getCoordinates(String city) async {
+    Dio dio = Dio(options);
+    try {
+      Response response = await dio.request(
+        'http://api.openweathermap.org/data/2.5/find',
+        options: Options(method: 'GET'),
+        queryParameters: <String, String>{
+          'q': city,
+          'units': _units,
+          'APPID': _appid,
+        },
+      );
+      _lat = response.data['list'][0]['coord']['lat'].toDouble();
+      _lon = response.data['list'][0]['coord']['lon'].toDouble();
+    } on DioError {
+      _status = false;
+    }
+  }
+
+  Future<List<dynamic>> getHourlyForecast() async {
+    final forecastList = [];
+    int currentDay = 0;
+    int index = -1;
+    Dio dio = Dio(options);
+    try {
+      Response response = await dio.request(
+        'https://api.openweathermap.org/data/2.5/onecall',
+        options: Options(method: 'GET'),
+        queryParameters: _queryParameters(<String, String>{
+          'lat': _lat.toString(),
+          'lon': _lon.toString(),
+        }),
+      );
+      print(response.data['hourly'][0]);
+      for (var i in response.data['hourly']) {
+        Map weatherMap = <String, dynamic>{};
+        weatherMap['День'] = _getLocalDay(i['dt']);
+        weatherMap['Месяц'] = _monthsMap[_getLocalMonth(i['dt'])];
+        weatherMap['Время'] = _getLocalTime(i['dt']);
+        weatherMap['Описание'] =
+            i['weather'][0]['description'][0].toUpperCase() +
+                i['weather'][0]['description'].substring(1);
+        weatherMap['Иконка'] = i['weather'][0]['icon'];
+        weatherMap['Температура'] = i['temp'].round();
+        weatherMap['Скорость ветра'] = i['wind_speed'];
+        weatherMap['Направление ветра'] = _windDirection(i['wind_deg']);
+        if (weatherMap['День'] != currentDay) {
+          currentDay = weatherMap['День'];
+          forecastList.add([weatherMap]);
+          index += 1;
+        } else {
+          forecastList[index].add(weatherMap);
+        }
+      }
+      _status = true;
+      return forecastList;
+    } on DioError {
+      _status = false;
+      return forecastList;
+    }
+  }
+
   Future<List<dynamic>> getLongForecast() async {
     final forecastList = [];
     int currentDay = 0;
@@ -152,9 +193,7 @@ class Weather {
       Response response = await dio.request(
         'http://api.openweathermap.org/data/2.5/forecast',
         options: Options(method: 'GET'),
-        queryParameters: _cityId > 0
-            ? _queryParameters(<String, String>{"id": _cityId.toString()})
-            : _queryParameters(<String, String>{"q": _cityName}),
+        queryParameters: _queryParameters(<String, String>{"q": _cityName}),
       );
       _timezone = response.data['city']['timezone'];
       for (var i in response.data['list']) {

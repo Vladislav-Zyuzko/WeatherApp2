@@ -29,7 +29,7 @@ class _LongForecastContentState extends State<LongForecastContent> {
                 child: Text(
                   "${widget.forecastLog[index1][0]['День']} ${widget
                       .forecastLog[index1][0]['Месяц']}",
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 30.0,
                     color: Colors.deepOrange,
                     fontWeight: FontWeight.bold,
