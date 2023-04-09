@@ -3,12 +3,10 @@ import 'package:flutter/material.dart';
 class LongForecastContent extends StatefulWidget {
   const LongForecastContent({super.key,
     required this.forecastLog,
-    required this.iconsMap,
-    required this.iconUrl});
+    required this.iconsMap});
 
   final List<dynamic> forecastLog;
   final Map<String, String> iconsMap;
-  final String iconUrl;
 
   @override
   State<LongForecastContent> createState() => _LongForecastContentState();

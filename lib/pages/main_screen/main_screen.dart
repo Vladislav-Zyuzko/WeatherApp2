@@ -5,10 +5,15 @@ import 'package:weather_app2/pages/main_screen/main_content.dart';
 import 'package:weather_app2/pages/load_content.dart';
 import 'package:weather_app2/pages/invalid_content.dart';
 import 'package:weather_app2/pages/long_forecast_content.dart';
+import 'package:weather_app2/pages/tomorrow_forecast_content.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 class Home extends StatefulWidget {
-  const Home({Key? key, required this.imagesSearch, required this.weather, required this.userBox})
+  const Home(
+      {Key? key,
+      required this.imagesSearch,
+      required this.weather,
+      required this.userBox})
       : super(key: key);
 
   final ImagesSearch imagesSearch;
@@ -70,34 +75,35 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   void getForecastData() async {
     forecastLog = [];
     forecastLog = await widget.weather.getLongForecast();
-  }
-
-  void getCoordinates() async {
-    widget.weather.getCoordinates(widget.userBox.get('city'));
+    setState(() {});
   }
 
   void getHourlyForecastData() async {
-    hourlyForecastLog = [];
-    hourlyForecastLog = await widget.weather.getHourlyForecast();
+    List<String> coordinates = await widget.weather.getCoordinates(widget.userBox.get('city') ?? 'Omsk');
+    hourlyForecastLog = await widget.weather.getHourlyForecast(coordinates[0], coordinates[1]);
+    setState(() {});
   }
 
   dynamic returnContent() {
     if (widget.weather.getStatus()) {
-      if (weatherLog.isNotEmpty) {
-        switch(_selectedPageIndex) {
+      if (weatherLog.isNotEmpty && forecastLog.isNotEmpty && hourlyForecastLog.isNotEmpty) {
+        switch (_selectedPageIndex) {
           case 0:
             return MainContent(
                 weather: widget.weather,
                 weatherLog: weatherLog,
                 iconsMap: iconsMap,
                 iconUrl: iconUrl,
-                cityImageUrl: widget.imagesSearch.getCityImageURL()
+                cityImageUrl: widget.imagesSearch.getCityImageURL());
+          case 1:
+            return TomorrowForecastContent(
+              hourlyForecastLog: hourlyForecastLog,
+              iconsMap: iconsMap,
             );
           case 2:
             return LongForecastContent(
               forecastLog: forecastLog,
               iconsMap: iconsMap,
-              iconUrl: iconUrl,
             );
         }
       } else {
@@ -112,8 +118,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     if (dir) {
       return TextButton(
         onPressed: () {
-        changeStateAnimationButton();
-      },
+          changeStateAnimationButton();
+        },
         child: Text(
           widget.weather.getCityName(),
           style: const TextStyle(
@@ -145,18 +151,17 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
             setState(() {
               changeStateAnimationButton();
             });
-          }
-      );
+          });
     }
   }
 
   void setNewCityImageURL() async {
-    String newCityImageURL = await widget.imagesSearch.getImage(widget.weather.getCityName());
+    String newCityImageURL =
+        await widget.imagesSearch.getImage(widget.weather.getCityName());
     setState(() {
       widget.userBox.put('cityImageURL', newCityImageURL);
       widget.imagesSearch.setCityImageURL(newCityImageURL);
     });
-
   }
 
   void changeStateAnimationButton() {
@@ -169,7 +174,6 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   }
 
   void loadData() {
-    getCoordinates();
     getWeatherData();
     getForecastData();
     getHourlyForecastData();
@@ -182,8 +186,12 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         vsync: this, duration: const Duration(milliseconds: 400));
     _animation = Tween<double>(begin: dir ? 0 : -0.25, end: dir ? -0.25 : 0)
         .animate(_controller);
-    if (widget.userBox.isNotEmpty) {widget.weather.setCityName(widget.userBox.get('city'));}
-    if (widget.userBox.isNotEmpty) {widget.imagesSearch.setCityImageURL(widget.userBox.get('cityImageURL'));}
+    if (widget.userBox.isNotEmpty) {
+      widget.weather.setCityName(widget.userBox.get('city'));
+    }
+    if (widget.userBox.isNotEmpty) {
+      widget.imagesSearch.setCityImageURL(widget.userBox.get('cityImageURL'));
+    }
     loadData();
   }
 
@@ -246,7 +254,6 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
               ),
               label: 'На 5 дней',
             )
-
           ],
           backgroundColor: Colors.black87,
         ),

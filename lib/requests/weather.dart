@@ -3,9 +3,6 @@ import 'package:dio/dio.dart';
 class Weather {
   int _timezone = 0;
 
-  double _lat = 55;
-  double _lon = 73.4;
-
   String _cityName = "Омск";
 
   bool _status = true;
@@ -109,7 +106,7 @@ class Weather {
       weatherMap['Температура'] = response.data['main']['temp'].round();
       weatherMap['Давление'] = response.data['main']['pressure'];
       weatherMap['Влажность'] = response.data['main']['humidity'];
-      weatherMap['Скорость ветра'] = response.data['wind']['speed'];
+      weatherMap['Скорость ветра'] = response.data['wind']['speed'].round();
       weatherMap['Направление ветра'] =
           _windDirection(response.data['wind']['deg']);
       weatherMap['Угол ветра'] = response.data['wind']['deg'];
@@ -121,7 +118,8 @@ class Weather {
     }
   }
 
-  void getCoordinates(String city) async {
+  Future<List<String>> getCoordinates(String city) async {
+    String lat, lon;
     Dio dio = Dio(options);
     try {
       Response response = await dio.request(
@@ -133,14 +131,16 @@ class Weather {
           'APPID': _appid,
         },
       );
-      _lat = response.data['list'][0]['coord']['lat'].toDouble();
-      _lon = response.data['list'][0]['coord']['lon'].toDouble();
+      lat = response.data['list'][0]['coord']['lat'].toString();
+      lon = response.data['list'][0]['coord']['lon'].toString();
+      return [lat, lon];
     } on DioError {
       _status = false;
+      return [];
     }
   }
 
-  Future<List<dynamic>> getHourlyForecast() async {
+  Future<List<dynamic>> getHourlyForecast(lat, lon) async {
     final forecastList = [];
     int currentDay = 0;
     int index = -1;
@@ -150,11 +150,10 @@ class Weather {
         'https://api.openweathermap.org/data/2.5/onecall',
         options: Options(method: 'GET'),
         queryParameters: _queryParameters(<String, String>{
-          'lat': _lat.toString(),
-          'lon': _lon.toString(),
+          'lat': lat,
+          'lon': lon,
         }),
       );
-      print(response.data['hourly'][0]);
       for (var i in response.data['hourly']) {
         Map weatherMap = <String, dynamic>{};
         weatherMap['День'] = _getLocalDay(i['dt']);
