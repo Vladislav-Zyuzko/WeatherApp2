@@ -8,7 +8,6 @@ class MainContent extends StatefulWidget {
         required this.weather,
         required this.weatherLog,
         required this.iconsMap,
-        required this.forecastLog,
         required this.iconUrl,
         required this.cityImageUrl,
       });
@@ -17,7 +16,6 @@ class MainContent extends StatefulWidget {
   final Map<String, String> iconsMap;
   final String iconUrl;
   final Map<String, dynamic> weatherLog;
-  final List<dynamic> forecastLog;
   final String cityImageUrl;
 
   @override
@@ -55,37 +53,28 @@ class _MainContentState extends State<MainContent> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    Column(
-                      children: [
-                        const Padding(padding: EdgeInsets.only(top: 20.0)),
-                        Text(
-                          '${widget.weatherLog['Температура']}°',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 70.0,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          widget.weatherLog['Описание'][0].toUpperCase() + widget.weatherLog['Описание'].substring(1),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 30.0,
-                          ),
-                        ),
-                      ],
+                    const Padding(padding: EdgeInsets.only(top: 20.0)),
+                    Text(
+                      '${widget.weatherLog['Температура']}°',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 70.0,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Image.asset(
-                          widget.iconsMap[widget.weatherLog['Иконка']] ?? 'assets/weather_icons/storm.png',
-                          scale: 1.3,
-                        ),
-                      ],
+                    Image.asset(
+                      widget.iconsMap[widget.weatherLog['Иконка']] ?? 'assets/weather_icons/storm.png',
+                      scale: 1.3,
                     ),
                   ],
-                )
+                ),
+                Text(
+                  widget.weatherLog['Описание'],
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 30.0,
+                  ),
+                ),
               ],
             ),
           ),

@@ -4,6 +4,7 @@ import 'package:weather_app2/requests/weather.dart';
 import 'package:weather_app2/pages/main_screen/main_content.dart';
 import 'package:weather_app2/pages/load_content.dart';
 import 'package:weather_app2/pages/invalid_content.dart';
+import 'package:weather_app2/pages/long_forecast_content.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 class Home extends StatefulWidget {
@@ -48,6 +49,14 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   Map<String, dynamic> weatherLog = <String, dynamic>{};
   List<dynamic> forecastLog = [];
 
+  int _selectedPageIndex = 0;
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedPageIndex = index;
+    });
+  }
+
   void getWeatherData() async {
     weatherLog = <String, dynamic>{};
     weatherLog = await widget.weather.getNowWeather();
@@ -69,13 +78,22 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   dynamic returnContent() {
     if (widget.weather.getStatus()) {
       if (weatherLog.isNotEmpty) {
-        return MainContent(
-            weather: widget.weather,
-            weatherLog: weatherLog,
-            forecastLog: forecastLog,
-            iconsMap: iconsMap,
-            iconUrl: iconUrl,
-            cityImageUrl: widget.imagesSearch.getCityImageURL());
+        switch(_selectedPageIndex) {
+          case 0:
+            return MainContent(
+                weather: widget.weather,
+                weatherLog: weatherLog,
+                iconsMap: iconsMap,
+                iconUrl: iconUrl,
+                cityImageUrl: widget.imagesSearch.getCityImageURL()
+            );
+          case 2:
+            return LongForecastContent(
+              forecastLog: forecastLog,
+              iconsMap: iconsMap,
+              iconUrl: iconUrl,
+            );
+        }
       } else {
         return const LoadContent();
       }
@@ -195,6 +213,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
           topRight: Radius.circular(30.0),
         ),
         child: BottomNavigationBar(
+          currentIndex: _selectedPageIndex,
+          onTap: _onItemTapped,
           selectedItemColor: Colors.white,
           selectedFontSize: 15.0,
           unselectedItemColor: Colors.grey,
